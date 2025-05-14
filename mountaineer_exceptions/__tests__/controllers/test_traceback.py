@@ -48,7 +48,7 @@ def test_basic_exception_parsing(parser):
     assert len(result.frames) > 0
 
     frame = result.frames[-1]
-    assert frame.file_name.endswith(f"{__name__}.py")
+    assert frame.file_name.endswith("test_traceback.py")
     assert isinstance(frame.line_number, int)
     assert frame.function_name == "test_basic_exception_parsing"
     assert isinstance(frame.code_context, str)
