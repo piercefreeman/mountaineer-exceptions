@@ -34,7 +34,7 @@ jobs:
       
       - name: Install mountaineer
         run: |
-          git clone https://github.com/piercefreeman/mountaineer.git ../mountaineer
+          git clone -b feature/plugin-conventions https://github.com/piercefreeman/mountaineer.git ../mountaineer
       
       - name: Install dependencies
         run: |
@@ -73,7 +73,7 @@ jobs:
       
       - name: Install mountaineer
         run: |
-          git clone https://github.com/piercefreeman/mountaineer.git ../mountaineer
+          git clone -b feature/plugin-conventions https://github.com/piercefreeman/mountaineer.git ../mountaineer
       
       - name: Install dependencies
         run: |
