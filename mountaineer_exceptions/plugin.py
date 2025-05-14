@@ -7,9 +7,8 @@ from mountaineer_exceptions.views import get_core_view_path
 plugin = MountaineerPlugin(
     name="mountaineer-exceptions",
     controllers=[ExceptionController],
-    ssr_root=get_core_view_path("_ssr"),
-    static_root=get_core_view_path("_static"),
+    view_root=get_core_view_path(""),
     build_config=BuildConfig(
-        view_root=get_core_view_path(""), custom_builders=[PostCSSBundler()]
+        custom_builders=[PostCSSBundler()]
     ),
 )
