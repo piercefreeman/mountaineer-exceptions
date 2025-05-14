@@ -1,6 +1,7 @@
 from mountaineer.plugin import MountaineerPlugin
-from mountaineer_exceptions.views import get_core_view_path
+
 from mountaineer_exceptions.controllers.exception_controller import ExceptionController
+from mountaineer_exceptions.views import get_core_view_path
 
 plugin = MountaineerPlugin(
     name="mountaineer-exceptions",
