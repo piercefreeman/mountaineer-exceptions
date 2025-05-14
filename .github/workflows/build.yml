@@ -83,7 +83,7 @@ jobs:
           npm install
       
       - name: Update version from release tag
-        if: github.event_name == 'release' && github.event.action == 'created'
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           # Extract version from the release tag (remove 'v' prefix if present)
           VERSION=${GITHUB_REF#refs/tags/}
@@ -109,7 +109,7 @@ jobs:
     needs:
       - test-and-lint
       - build
-    if: success() && github.event_name == 'release' && github.event.action == 'created'
+    if: success() && startsWith(github.ref, 'refs/tags/')
     
     steps:
       - uses: actions/checkout@v4
