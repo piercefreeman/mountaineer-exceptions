@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useServer } from "./_server/useServer";
 
 const Page = () => {
@@ -40,6 +40,7 @@ const Page = () => {
                     {frame.file_name}:{frame.line_number}
                   </div>
                   <button
+                  type="button"
                     onClick={() => {
                       if (showFrame !== frame.id) {
                         setShowFrame(frame.id);
@@ -63,6 +64,7 @@ const Page = () => {
                       },
                       (_, i) => (
                         <div
+                          // biome-ignore lint/suspicious/noArrayIndexKey: Required for server HTML rendering
                           key={i}
                           className={`leading-6 ${
                             frame.start_line_number + i === frame.line_number
@@ -79,6 +81,7 @@ const Page = () => {
                   {/* Code content */}
                   <div
                     className="flex-1 p-4 overflow-x-auto font-mono text-sm bg-gray-800 !leading-6"
+                    // biome-ignore lint/security/noDangerouslySetInnerHtml: Required for server HTML rendering
                     dangerouslySetInnerHTML={{ __html: frame.code_context }}
                   />
                 </div>
@@ -90,6 +93,7 @@ const Page = () => {
                   <div className="bg-gray-100 p-4 font-mono text-sm font-bold text-gray-700 border-b flex items-center">
                     <div className="grow">Local Variables</div>
                     <button
+                      type="button"
                       onClick={() => setShowFrame(null)}
                       className="py-1 px-2 -m-2 hover:bg-gray-500/10 rounded"
                     >
@@ -101,6 +105,7 @@ const Page = () => {
                         stroke="currentColor"
                         className="size-6"
                       >
+                        <title>Close</title>
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -117,6 +122,7 @@ const Page = () => {
                         </div>
                         <div
                           className="flex-1 p-4 overflow-x-auto font-mono text-sm bg-gray-700"
+                          // biome-ignore lint/security/noDangerouslySetInnerHtml: Required for server HTML rendering
                           dangerouslySetInnerHTML={{ __html: html }}
                         />
                       </div>
