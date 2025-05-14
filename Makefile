@@ -29,6 +29,7 @@ lint-validation:
 # Building
 build:
 	uv run build
+	uv build
 
 # Clean build artifacts
 clean:

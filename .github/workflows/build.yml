@@ -32,15 +32,14 @@ jobs:
         run: |
           pip install uv
       
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
-          uv pip install -e ".[dev]"
-          uv pip install pytest
+          uv sync
       
       - name: Install JS dependencies
         run: |
           cd mountaineer_exceptions/views
-          npm ci
+          npm install
       
       - name: Run tests
         run: |
@@ -70,8 +69,23 @@ jobs:
       
       - name: Install dependencies
         run: |
-          uv pip install -e ".[dev]"
-          uv pip install build twine
+          uv sync
+      
+      - name: Install JS dependencies
+        run: |
+          cd mountaineer_exceptions/views
+          npm install
+      
+      - name: Update version from release tag
+        if: github.event_name == 'release' && github.event.action == 'created'
+        run: |
+          # Extract version from the release tag (remove 'v' prefix if present)
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}
+          echo "Setting version to $VERSION"
+          
+          # Update version in pyproject.toml
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
       
       - name: Build package
         run: |
@@ -82,7 +96,7 @@ jobs:
         with:
           name: dist
           path: dist/
-          retention-days: 7
+          retention-days: 2
 
   publish:
     runs-on: ubuntu-latest
