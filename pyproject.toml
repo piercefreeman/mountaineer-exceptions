@@ -15,6 +15,9 @@ build = "mountaineer_exceptions.cli:build"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+artifacts = ["mountaineer_exceptions/views/_static", "mountaineer_exceptions/views/_ssr"]
+
 [dependency-groups]
 dev = [
     "mountaineer",
