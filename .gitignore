@@ -172,3 +172,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+node_modules
+
+_metadata
+_server
+_ssr
+_static

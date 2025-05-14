@@ -1,0 +1,12 @@
+{
+	"linter": {
+		"rules": {
+			"correctness": {
+				"noUnusedImports": "error"
+			}
+		}
+	},
+	"files": {
+		"ignore": ["**/*/_server/*.ts", "**/*.js"]
+	}
+}

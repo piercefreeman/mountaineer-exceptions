@@ -1,0 +1,23 @@
+{
+  "name": "views",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "biome lint ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/react": "^19.0.10",
+    "react": "^19.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.5.3",
+    "@tailwindcss/postcss": "^4.1.6",
+    "postcss": "^8.5.3",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^4.1.6"
+  }
+}
