@@ -179,3 +179,5 @@ _metadata
 _server
 _ssr
 _static
+
+.DS_Store
