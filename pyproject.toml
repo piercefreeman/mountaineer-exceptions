@@ -5,12 +5,8 @@ description = "A small plugin for mountaineer that shows beautiful tracebacks in
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "mountaineer",
     "pygments>=2.19.1",
 ]
-
-[tool.uv.sources]
-mountaineer = { path = "../mountaineer", editable = true }
 
 [project.scripts]
 build = "mountaineer_exceptions.cli:build"
@@ -21,6 +17,7 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "mountaineer",
     "pyright>=1.1.400",
     "pytest>=8.3.5",
     "ruff>=0.11.9",
@@ -29,3 +26,6 @@ dev = [
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I001", "T201"]
+
+[tool.uv.sources]
+mountaineer = { path = "../mountaineer", editable = true }

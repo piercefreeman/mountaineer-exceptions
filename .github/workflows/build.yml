@@ -32,6 +32,10 @@ jobs:
         run: |
           pip install uv
       
+      - name: Install mountaineer
+        run: |
+          git clone https://github.com/piercefreeman/mountaineer.git ../mountaineer
+      
       - name: Install dependencies
         run: |
           uv sync
@@ -66,6 +70,10 @@ jobs:
       - name: Install uv
         run: |
           pip install uv
+      
+      - name: Install mountaineer
+        run: |
+          git clone https://github.com/piercefreeman/mountaineer.git ../mountaineer
       
       - name: Install dependencies
         run: |
