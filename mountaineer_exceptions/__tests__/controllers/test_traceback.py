@@ -3,7 +3,11 @@ from pathlib import Path
 from textwrap import dedent
 
 import pytest
-from mountaineer.controllers.traceback import ExceptionParser, ParsedException
+
+from mountaineer_exceptions.controllers.traceback import (
+    ExceptionParser,
+    ParsedException,
+)
 
 
 def nested_function(x: int) -> None:
