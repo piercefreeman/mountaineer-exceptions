@@ -47,7 +47,7 @@ class ExceptionController(ControllerBase):
             parsed_exception=parsed_exception,
             metadata=Metadata(
                 title=f"Exception: {exception}",
-                links=[LinkAttribute(rel="stylesheet", href="/static/core_main.css")],
+                links=[LinkAttribute(rel="stylesheet", href=f"{self._scripts_prefix}/core_main.css")],
                 ignore_global_metadata=True,
             ),
         )
