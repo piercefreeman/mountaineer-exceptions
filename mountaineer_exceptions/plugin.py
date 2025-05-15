@@ -8,7 +8,5 @@ plugin = MountaineerPlugin(
     name="mountaineer-exceptions",
     controllers=[ExceptionController],
     view_root=get_core_view_path(""),
-    build_config=BuildConfig(
-        custom_builders=[PostCSSBundler()]
-    ),
+    build_config=BuildConfig(custom_builders=[PostCSSBundler()]),
 )

@@ -1,12 +1,10 @@
 from mountaineer.controller import ControllerBase
-from mountaineer.paths import ManagedViewPath
 from mountaineer.render import LinkAttribute, Metadata, RenderBase
 
 from mountaineer_exceptions.controllers.traceback import (
     ExceptionParser,
     ParsedException,
 )
-from mountaineer_exceptions.views import get_core_view_path
 
 
 class ExceptionRender(RenderBase):
@@ -47,7 +45,11 @@ class ExceptionController(ControllerBase):
             parsed_exception=parsed_exception,
             metadata=Metadata(
                 title=f"Exception: {exception}",
-                links=[LinkAttribute(rel="stylesheet", href=f"{self._scripts_prefix}/core_main.css")],
+                links=[
+                    LinkAttribute(
+                        rel="stylesheet", href=f"{self._scripts_prefix}/core_main.css"
+                    )
+                ],
                 ignore_global_metadata=True,
             ),
         )
