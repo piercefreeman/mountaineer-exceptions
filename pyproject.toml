@@ -9,7 +9,7 @@ dependencies = [
 ]
 
 [project.scripts]
-build = "mountaineer_exceptions.cli:build"
+build-exceptions = "mountaineer_exceptions.cli:build"
 
 [build-system]
 requires = ["hatchling"]
