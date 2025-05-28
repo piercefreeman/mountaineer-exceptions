@@ -1,10 +1,12 @@
 from mountaineer.controller import ControllerBase
+from mountaineer.paths import ManagedViewPath
 from mountaineer.render import LinkAttribute, Metadata, RenderBase
 
 from mountaineer_exceptions.controllers.traceback import (
     ExceptionParser,
     ParsedException,
 )
+from mountaineer_exceptions.views import get_core_view_path
 
 
 class ExceptionRender(RenderBase):
@@ -24,7 +26,10 @@ class ExceptionController(ControllerBase):
     """
 
     url = "/_exception"
-    view_path = "core/exception/page.tsx"
+    view_path = (
+        ManagedViewPath.from_view_root(get_core_view_path(""))
+        / "core/exception/page.tsx"
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
