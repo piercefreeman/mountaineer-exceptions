@@ -10,6 +10,7 @@ from mountaineer import (
     Depends,
     RenderBase,
 )
+from mountaineer.cli import handle_build
 
 from mountaineer_exceptions.__tests__.fixtures import get_fixtures_path
 from mountaineer_exceptions.controllers.exception_controller import (
@@ -53,6 +54,9 @@ def app_controller() -> AppController:
 
 @pytest.fixture
 def exception_controller(app_controller: AppController) -> ExceptionController:
+    # Make sure we have the properly built plugin before we try to mount it
+    handle_build(webcontroller="mountaineer_exceptions.cli:app")
+
     app_controller.register(exceptions_plugin)
 
     exception_controller = [
