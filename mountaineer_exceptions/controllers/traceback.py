@@ -29,9 +29,10 @@ class ParsedException(BaseModel):
 
 
 class ExceptionParser:
-    def __init__(self):
+    def __init__(self, max_payload_length: int = 1000):
         self.formatter = HtmlFormatter(style="github-dark")
         self.python_lexer = PythonLexer()
+        self.max_payload_length = max_payload_length
 
     def _get_lexer(self, filename: str, code: str):
         try:
@@ -68,11 +69,28 @@ class ExceptionParser:
     def _format_value(self, value: object) -> str:
         try:
             if inspect.isclass(value) or inspect.isfunction(value):
-                return str(value)
-            formatted = highlight(repr(value), self.python_lexer, self.formatter)
-            return formatted
+                raw_value = str(value)
+            else:
+                raw_value = repr(value)
+
+            # Limit payload length to prevent JavaScript parsing issues
+            # Truncate before syntax highlighting to avoid breaking HTML tags
+            if len(raw_value) > self.max_payload_length:
+                truncate_at = (
+                    self.max_payload_length - 20
+                )  # Leave room for truncation message
+                raw_value = raw_value[:truncate_at] + "... [truncated]"
+
+            # Apply syntax highlighting to the (possibly truncated) raw value
+            if inspect.isclass(value) or inspect.isfunction(value):
+                result = raw_value
+            else:
+                result = highlight(raw_value, self.python_lexer, self.formatter)
+
         except Exception:
-            return str(value)
+            result = str(value)
+
+        return result
 
     def parse_exception(self, exc: BaseException) -> ParsedException:
         frames = []

@@ -216,3 +216,104 @@ def test_nested_package_structure(tmp_path, parser: ExceptionParser):
     test_file.touch()
 
     assert parser.get_package_path(str(test_file)) == "pkg1/pkg2/pkg3/module.py"
+
+
+def test_payload_truncation():
+    """Test that large variable payloads are truncated to prevent JavaScript parsing issues"""
+    parser = ExceptionParser(max_payload_length=1000)
+
+    # Test with a very long string that should be truncated (10k characters)
+    long_value = "x" * 10000  # 10,000 character string
+    formatted_long = parser._format_value(long_value)
+
+    # Should be significantly shorter than original, but allow for HTML markup overhead
+    assert len(formatted_long) < 2000, (
+        f"Long payload was not sufficiently truncated: {len(formatted_long)} chars"
+    )
+    assert len(formatted_long) > 500, (
+        f"Long payload was over-truncated: {len(formatted_long)} chars"
+    )
+    assert "[truncated]" in formatted_long, (
+        "Truncation marker not found in truncated payload"
+    )
+
+    # Test with a short string that should not be truncated
+    short_value = "short string"
+    formatted_short = parser._format_value(short_value)
+
+    assert "[truncated]" not in formatted_short, (
+        "Short payload was incorrectly truncated"
+    )
+    assert len(formatted_short) < 1000, "Short payload is unexpectedly long"
+
+    # Test with a complex object that creates a long repr (10k+ characters)
+    complex_value = {"key" + str(i): "value" * 200 for i in range(200)}
+    formatted_complex = parser._format_value(complex_value)
+
+    # Should be significantly shorter than original, but allow for HTML markup overhead
+    assert len(formatted_complex) < 2000, (
+        f"Complex payload was not sufficiently truncated: {len(formatted_complex)} chars"
+    )
+    assert len(formatted_complex) > 500, (
+        f"Complex payload was over-truncated: {len(formatted_complex)} chars"
+    )
+    assert "[truncated]" in formatted_complex, (
+        "Truncation marker not found in complex payload"
+    )
+
+    # Test with custom truncation limit
+    parser_small = ExceptionParser(max_payload_length=100)
+    formatted_small = parser_small._format_value("x" * 1000)
+
+    # Should be much smaller but allow for HTML markup overhead
+    assert len(formatted_small) < 500, (
+        f"Small limit was not respected: {len(formatted_small)} chars"
+    )
+    assert "[truncated]" in formatted_small, (
+        "Truncation marker not found with small limit"
+    )
+
+
+def test_payload_truncation_in_exception_parsing():
+    """Test that payload truncation works in actual exception parsing"""
+    parser = ExceptionParser(max_payload_length=500)
+
+    def function_with_large_locals():
+        # Create much larger data (10k+ characters)
+        large_data = {"key" + str(i): "x" * 500 for i in range(100)}  # noqa: F841
+        small_data = "normal string"  # noqa: F841
+        raise ValueError("Test error with large locals")
+
+    try:
+        function_with_large_locals()
+    except ValueError as e:
+        result = parser.parse_exception(e)
+
+    # Find the frame with our function
+    target_frame = None
+    for frame in result.frames:
+        if frame.function_name == "function_with_large_locals":
+            target_frame = frame
+            break
+
+    assert target_frame is not None, "Could not find target frame"
+    assert "large_data" in target_frame.local_values, "large_data not found in locals"
+    assert "small_data" in target_frame.local_values, "small_data not found in locals"
+
+    # Check that large data was truncated (allow for HTML markup overhead)
+    large_data_formatted = target_frame.local_values["large_data"]
+    assert len(large_data_formatted) < 1500, (
+        f"Large data was not sufficiently truncated: {len(large_data_formatted)} chars"
+    )
+    assert len(large_data_formatted) > 200, (
+        f"Large data was over-truncated: {len(large_data_formatted)} chars"
+    )
+    assert "[truncated]" in large_data_formatted, (
+        "Truncation marker not found in large data"
+    )
+
+    # Check that small data was not truncated
+    small_data_formatted = target_frame.local_values["small_data"]
+    assert "[truncated]" not in small_data_formatted, (
+        "Small data was incorrectly truncated"
+    )
