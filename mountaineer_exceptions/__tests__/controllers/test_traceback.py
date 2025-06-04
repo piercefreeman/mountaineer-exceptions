@@ -1,6 +1,7 @@
 import importlib.util
 from pathlib import Path
 from textwrap import dedent
+from typing import Any
 
 import pytest
 
@@ -216,3 +217,204 @@ def test_nested_package_structure(tmp_path, parser: ExceptionParser):
     test_file.touch()
 
     assert parser.get_package_path(str(test_file)) == "pkg1/pkg2/pkg3/module.py"
+
+
+def test_payload_truncation():
+    """Test that large variable payloads are truncated to prevent JavaScript parsing issues"""
+    parser = ExceptionParser(max_payload_length=1000)
+
+    # Test with a very long string that should be truncated (10k characters)
+    long_value = "x" * 10000  # 10,000 character string
+    formatted_long = parser._format_value(long_value)
+
+    # Should be significantly shorter than original, but allow for HTML markup overhead
+    assert len(formatted_long) < 2000, (
+        f"Long payload was not sufficiently truncated: {len(formatted_long)} chars"
+    )
+    assert len(formatted_long) > 500, (
+        f"Long payload was over-truncated: {len(formatted_long)} chars"
+    )
+    assert "[truncated]" in formatted_long, (
+        "Truncation marker not found in truncated payload"
+    )
+
+    # Test with a short string that should not be truncated
+    short_value = "short string"
+    formatted_short = parser._format_value(short_value)
+
+    assert "[truncated]" not in formatted_short, (
+        "Short payload was incorrectly truncated"
+    )
+    assert len(formatted_short) < 1000, "Short payload is unexpectedly long"
+
+    # Test with a complex object that creates a long repr (10k+ characters)
+    complex_value = {"key" + str(i): "value" * 200 for i in range(200)}
+    formatted_complex = parser._format_value(complex_value)
+
+    # Should be significantly shorter than original, but allow for HTML markup overhead
+    assert len(formatted_complex) < 2000, (
+        f"Complex payload was not sufficiently truncated: {len(formatted_complex)} chars"
+    )
+    assert len(formatted_complex) > 500, (
+        f"Complex payload was over-truncated: {len(formatted_complex)} chars"
+    )
+    assert "[truncated]" in formatted_complex, (
+        "Truncation marker not found in complex payload"
+    )
+
+    # Test with custom truncation limit
+    parser_small = ExceptionParser(max_payload_length=100)
+    formatted_small = parser_small._format_value("x" * 1000)
+
+    # Should be much smaller but allow for HTML markup overhead
+    assert len(formatted_small) < 500, (
+        f"Small limit was not respected: {len(formatted_small)} chars"
+    )
+    assert "[truncated]" in formatted_small, (
+        "Truncation marker not found with small limit"
+    )
+
+
+def test_payload_truncation_in_exception_parsing():
+    """Test that payload truncation works in actual exception parsing"""
+    parser = ExceptionParser(max_payload_length=500)
+
+    def function_with_large_locals():
+        # Create much larger data (10k+ characters)
+        large_data = {"key" + str(i): "x" * 500 for i in range(100)}  # noqa: F841
+        small_data = "normal string"  # noqa: F841
+        raise ValueError("Test error with large locals")
+
+    try:
+        function_with_large_locals()
+    except ValueError as e:
+        result = parser.parse_exception(e)
+
+    # Find the frame with our function
+    target_frame = None
+    for frame in result.frames:
+        if frame.function_name == "function_with_large_locals":
+            target_frame = frame
+            break
+
+    assert target_frame is not None, "Could not find target frame"
+    assert "large_data" in target_frame.local_values, "large_data not found in locals"
+    assert "small_data" in target_frame.local_values, "small_data not found in locals"
+
+    # Check that large data was truncated (allow for HTML markup overhead)
+    large_data_formatted = target_frame.local_values["large_data"]
+    assert len(large_data_formatted) < 1500, (
+        f"Large data was not sufficiently truncated: {len(large_data_formatted)} chars"
+    )
+    assert len(large_data_formatted) > 200, (
+        f"Large data was over-truncated: {len(large_data_formatted)} chars"
+    )
+    assert "[truncated]" in large_data_formatted, (
+        "Truncation marker not found in large data"
+    )
+
+    # Check that small data was not truncated
+    small_data_formatted = target_frame.local_values["small_data"]
+    assert "[truncated]" not in small_data_formatted, (
+        "Small data was incorrectly truncated"
+    )
+
+
+def test_shared_variable_caching_across_frames():
+    """Test that shared variables across multiple frames are cached and reused"""
+    parser = ExceptionParser()
+
+    # Create a shared object that will appear in multiple frames
+    shared_data = {"shared": "data", "numbers": [1, 2, 3, 4, 5]}
+
+    def inner_function(data: dict[str, Any]) -> None:
+        local_inner = data  # Same object reference  # noqa: F841
+        raise ValueError("Inner error")
+
+    def middle_function(data: dict[str, Any]) -> None:
+        local_middle = data  # Same object reference  # noqa: F841
+        inner_function(data)
+
+    def outer_function() -> None:
+        local_outer = shared_data  # Same object reference  # noqa: F841
+        middle_function(shared_data)
+
+    result: ParsedException | None = None
+    try:
+        outer_function()
+    except ValueError as e:
+        result = parser.parse_exception(e)
+
+    assert result is not None
+
+    # Verify that we have multiple frames
+    assert len(result.frames) >= 3
+
+    # Since only the top frame processes locals, we should only see locals in the last frame
+    frames_with_locals = [frame for frame in result.frames if frame.local_values]
+    assert len(frames_with_locals) == 1, "Only top frame should have local variables"
+
+    # The top frame should have the shared variable
+    top_frame = result.frames[-1]
+    assert "local_inner" in top_frame.local_values
+
+    # Verify that the cache was used (check parser cache stats)
+    cache_stats = parser._get_cache_stats()
+
+    # The shared object should be in the cache
+    assert cache_stats["cache_size"] >= 1, "Shared objects should be cached"
+
+
+def test_only_top_frame_processes_locals():
+    """Test that only the top frame (where the error occurred) has local variables processed"""
+    parser = ExceptionParser()
+
+    def bottom_function() -> None:
+        bottom_var = "bottom_value"  # noqa: F841
+        bottom_dict = {"bottom": "data"}  # noqa: F841
+        raise RuntimeError("Bottom error")
+
+    def middle_function() -> None:
+        middle_var = "middle_value"  # noqa: F841
+        middle_list = [1, 2, 3]  # noqa: F841
+        bottom_function()
+
+    def top_function() -> None:
+        top_var = "top_value"  # noqa: F841
+        top_set = {1, 2, 3}  # noqa: F841
+        middle_function()
+
+    result: ParsedException | None = None
+    try:
+        top_function()
+    except RuntimeError as e:
+        result = parser.parse_exception(e)
+
+    assert result is not None
+    assert len(result.frames) >= 3
+
+    # Check that only the bottom frame (top of stack) has local variables
+    frames_with_locals = []
+    for i, frame in enumerate(result.frames):
+        if frame.local_values:
+            frames_with_locals.append((i, frame.function_name, frame.local_values))
+
+    # Should only have one frame with locals (the bottom_function frame)
+    assert len(frames_with_locals) == 1, (
+        f"Expected only 1 frame with locals, but found {len(frames_with_locals)}: "
+        f"{[(name, list(locals.keys())) for (_, name, locals) in frames_with_locals]}"
+    )
+
+    # The frame with locals should be the bottom_function (where error occurred)
+    frame_index, function_name, local_values = frames_with_locals[0]
+    assert function_name == "bottom_function"
+    assert "bottom_var" in local_values
+    assert "bottom_dict" in local_values
+
+    # Verify other frames don't have locals
+    for i, frame in enumerate(result.frames):
+        if frame.function_name in ["middle_function", "top_function"]:
+            assert not frame.local_values, (
+                f"Frame {frame.function_name} should not have local variables, "
+                f"but has: {list(frame.local_values.keys())}"
+            )
