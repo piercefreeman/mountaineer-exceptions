@@ -100,6 +100,10 @@ jobs:
       - name: Build package
         run: |
           make build
+
+      - name: Verify packaged plugin assets
+        run: |
+          uv run python .github/scripts/verify_plugin_assets.py mountaineer_exceptions/views/_static mountaineer_exceptions/views/_ssr
       
       - name: Store build artifacts
         uses: actions/upload-artifact@v4
