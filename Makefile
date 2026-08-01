@@ -1,34 +1,40 @@
-.PHONY: test lint lint-py lint-js lint-validation build clean
+.PHONY: prepare test lint lint-py lint-js lint-validation build clean
 
 # Default directories
 PYTHON_SRC := mountaineer_exceptions
 JS_SRC := $(PYTHON_SRC)/views
+MOUNTAINEER_VERSION := 0.20.0.dev1
+
+prepare:
+	uv sync
+	uv pip install "mountaineer==$(MOUNTAINEER_VERSION)"
+	uv pip install --no-deps --editable .
 
 # Testing
-test:
-	uv run pytest
+test: prepare
+	uv run --no-sync pytest
 
 # Linting
 lint: lint-py lint-js
 
-lint-py:
-	uv run ruff format $(PYTHON_SRC)
-	uv run ruff check --fix $(PYTHON_SRC)
+lint-py: prepare
+	uv run --no-sync ruff format $(PYTHON_SRC)
+	uv run --no-sync ruff check --fix $(PYTHON_SRC)
 
 lint-js:
 	cd $(JS_SRC) && npm run lint
 
 # Lint validation
-lint-validation:
+lint-validation: prepare
 	echo "Running lint validation for $(PYTHON_SRC)..."
-	@(cd . && uv run ruff format --check $(PYTHON_SRC))
-	@(cd . && uv run ruff check $(PYTHON_SRC))
+	@(cd . && uv run --no-sync ruff format --check $(PYTHON_SRC))
+	@(cd . && uv run --no-sync ruff check $(PYTHON_SRC))
 	echo "Running pyright for $(PYTHON_SRC)..."
-	@(cd . && uv run pyright $(PYTHON_SRC))
+	@(cd . && uv run --no-sync pyright $(PYTHON_SRC))
 
 # Building
-build:
-	uv run build-exceptions
+build: prepare
+	uv run --no-sync build-exceptions
 	uv build
 
 # Clean build artifacts

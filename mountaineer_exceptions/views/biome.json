@@ -7,6 +7,6 @@
 		}
 	},
 	"files": {
-		"ignore": ["**/*/_server/*.ts", "**/*.js"]
+		"ignore": ["**/*/.mountaineer/*.ts", "**/*.js"]
 	}
 }

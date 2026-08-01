@@ -32,12 +32,6 @@ jobs:
         run: |
           pip install uv
       
-      - name: Install mountaineer
-        run: |
-          git clone https://github.com/piercefreeman/mountaineer.git ../mountaineer
-          cd ../mountaineer
-          uv add --editable ../mountaineer-exceptions
-      
       - name: Install dependencies
         run: |
           uv sync
@@ -71,12 +65,6 @@ jobs:
         run: |
           pip install uv
       
-      - name: Install mountaineer
-        run: |
-          git clone https://github.com/piercefreeman/mountaineer.git ../mountaineer
-          cd ../mountaineer
-          uv add --editable ../mountaineer-exceptions
-      
       - name: Install dependencies
         run: |
           uv sync
@@ -103,7 +91,7 @@ jobs:
 
       - name: Verify packaged plugin assets
         run: |
-          uv run python .github/scripts/verify_plugin_assets.py mountaineer_exceptions/views/_static mountaineer_exceptions/views/_ssr
+          uv run python .github/scripts/verify_plugin_assets.py mountaineer_exceptions/views/.mountaineer/static mountaineer_exceptions/views/.mountaineer/ssr
       
       - name: Store build artifacts
         uses: actions/upload-artifact@v4
