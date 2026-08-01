@@ -179,5 +179,6 @@ _metadata
 _server
 _ssr
 _static
+.mountaineer
 
 .DS_Store

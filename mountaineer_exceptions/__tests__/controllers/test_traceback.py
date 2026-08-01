@@ -285,6 +285,7 @@ def test_payload_truncation_in_exception_parsing():
         small_data = "normal string"  # noqa: F841
         raise ValueError("Test error with large locals")
 
+    result = None
     try:
         function_with_large_locals()
     except ValueError as e:
@@ -292,6 +293,7 @@ def test_payload_truncation_in_exception_parsing():
 
     # Find the frame with our function
     target_frame = None
+    assert result is not None
     for frame in result.frames:
         if frame.function_name == "function_with_large_locals":
             target_frame = frame
