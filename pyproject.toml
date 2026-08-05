@@ -19,6 +19,8 @@ build-backend = "hatchling.build"
 artifacts = [
     "mountaineer_exceptions/views/.mountaineer/static",
     "mountaineer_exceptions/views/.mountaineer/ssr",
+    "mountaineer_exceptions/views/.mountaineer/api.ts",
+    "mountaineer_exceptions/views/core/exception/.mountaineer/links.ts",
 ]
 
 [dependency-groups]

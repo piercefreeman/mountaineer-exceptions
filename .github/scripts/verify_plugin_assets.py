@@ -42,8 +42,9 @@ def get_missing_prefixes(wheel_path: Path, asset_prefixes: list[str]) -> list[st
 
     missing_prefixes: list[str] = []
     for raw_prefix in asset_prefixes:
-        prefix = raw_prefix.rstrip("/") + "/"
-        if not any(
+        path = raw_prefix.rstrip("/")
+        prefix = path + "/"
+        if path not in names and not any(
             name.startswith(prefix) and not name.endswith("/") for name in names
         ):
             missing_prefixes.append(raw_prefix)
