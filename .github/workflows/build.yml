@@ -91,7 +91,11 @@ jobs:
 
       - name: Verify packaged plugin assets
         run: |
-          uv run python .github/scripts/verify_plugin_assets.py mountaineer_exceptions/views/.mountaineer/static mountaineer_exceptions/views/.mountaineer/ssr
+          uv run python .github/scripts/verify_plugin_assets.py \
+            mountaineer_exceptions/views/.mountaineer/static \
+            mountaineer_exceptions/views/.mountaineer/ssr \
+            mountaineer_exceptions/views/.mountaineer/api.ts \
+            mountaineer_exceptions/views/core/exception/.mountaineer/links.ts
       
       - name: Store build artifacts
         uses: actions/upload-artifact@v4
